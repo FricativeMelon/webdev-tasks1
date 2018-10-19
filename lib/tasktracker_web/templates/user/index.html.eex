@@ -14,10 +14,6 @@
       <td><%= user.name %></td>
 
       <td>
-        <%= link "Show", to: Routes.user_path(@conn, :show, user),
-            class: "btn btn-secondary" %>
-        <%= if @current_user && @current_user.name == user.name do link "Edit", to: Routes.user_path(@conn, :edit, user),
-            class: "btn btn-info" end%>
         <%= if @current_user && @current_user.name == user.name do link "Delete", to: Routes.user_path(@conn, :delete, user), method: :delete, data: [confirm: "Are you sure?"],
             class: "btn btn-danger" end%>
       </td>
@@ -25,5 +21,3 @@
 <% end %>
   </tbody>
 </table>
-
-<span><%= link "New User", to: Routes.user_path(@conn, :new), class: 'btn btn-primary' %></span>

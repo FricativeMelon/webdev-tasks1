@@ -15,7 +15,14 @@ defmodule TasktrackerWeb.TaskController do
   end
 
   def create(conn, %{"task" => task_params}) do
-    case Tasks.create_task(task_params) do
+    map = case task_params
+               |> Map.fetch("user_id") do
+            {:ok, _} ->
+              task_params
+            :error ->
+              Map.put(task_params, "user_id", Tasktracker.Accounts.get_user_by_name("_").id)
+          end
+    case Tasks.create_task(map) do
       {:ok, task} ->
         conn
         |> put_flash(:info, "Task created successfully.")
@@ -37,6 +44,37 @@ defmodule TasktrackerWeb.TaskController do
     render(conn, "edit.html", task: task, changeset: changeset)
   end
 
+  def update_from_delete(conn, %{"id" => id, "task" => task_params}) do
+    map =
+      case task_params
+           |> Map.fetch("user_name") do
+        {:ok, ""} ->
+          task_params
+          |> Map.delete("user_name")
+        {:ok, user_name} ->
+          user = Tasktracker.Accounts.get_user_by_name(user_name)
+          if user do
+            task_params
+            |> Map.delete("user_name")
+            |> Map.put("user_id", user.id)
+            |> Map.put("time", 0)
+          else
+            :error
+          end
+        :error ->
+          :error
+      end
+    task = Tasks.get_task!(id)
+    case map do
+      :error ->
+        conn
+        |> put_flash(:error, "Invalid username.")
+        |> redirect(to: Routes.task_path(conn, :edit, task))
+      _ ->
+        Tasks.update_task(task, map)
+    end
+  end
+
   def update(conn, %{"id" => id, "task" => task_params}) do
     map =
       case task_params
@@ -50,6 +88,7 @@ defmodule TasktrackerWeb.TaskController do
             task_params
             |> Map.delete("user_name")
             |> Map.put("user_id", user.id)
+            |> Map.put("time", 0)
           else
             :error
           end

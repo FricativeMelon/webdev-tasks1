@@ -12,5 +12,4 @@
 alias Tasktracker.Repo
 alias Tasktracker.Accounts.User
 
-Repo.insert!(%User{name: "Alice"})
-Repo.insert!(%User{name: "Bob"})
+Repo.insert!(%User{name: "_"})

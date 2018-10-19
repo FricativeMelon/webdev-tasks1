@@ -53,6 +53,13 @@ defmodule TasktrackerWeb.UserController do
 
   def delete(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
+    Tasktracker.Tasks.list_tasks()
+    |> Enum.map(fn t -> (if Integer.to_string(t.user_id, 10) == id do
+                           TasktrackerWeb.TaskController.update_from_delete(conn, %{"id" => t.id, "task" => %{"user_name" => "_"}})
+                         else
+                           t
+                         end)
+                end)
     {:ok, _user} = Accounts.delete_user(user)
 
     conn

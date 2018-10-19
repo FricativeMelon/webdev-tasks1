@@ -18,7 +18,7 @@ defmodule Tasktracker.Accounts do
 
   """
   def list_users do
-    Repo.all(User)
+    Enum.filter(Repo.all(User), &(&1.name != "_"))
   end
 
   @doc """
