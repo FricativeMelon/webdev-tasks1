@@ -14,7 +14,7 @@ config :tasktracker, TasktrackerWeb.Endpoint,
   root: ".",
   version: Application.spec(:phoenix_distillery, :vsn),
   http: [:inet6, port: {:system, "PORT"}],
-  url: [host: "tasks1.webdevka.fun", port: 80],
+  url: [host: "tasks2.webdevka.fun", port: 80],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
@@ -84,7 +84,7 @@ use Mix.Config
 # or recreate for your teammates (or yourself later on).
 
 get_secret = fn name ->
-  base = Path.expand("~/.config/tasktracker")
+  base = Path.expand("~/.config/tasks2")
   File.mkdir_p!(base)
   path = Path.join(base, name)
   unless File.exists?(path) do

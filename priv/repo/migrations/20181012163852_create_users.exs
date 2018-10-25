@@ -4,7 +4,7 @@ defmodule Tasktracker.Repo.Migrations.CreateUsers do
   def change do
     create table(:users) do
       add :name, :string
-      add :tasks, {:array, :string}
+      add :manager_id, :id
 
       timestamps()
     end

@@ -35,9 +35,21 @@ defmodule Tasktracker.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id) do
+    if id != nil do
+      Repo.get!(User, id)
+    else
+      Repo.get_by(User, name: "_")
+    end
+  end
 
-  def get_user(id), do: Repo.get(User, id)
+  def get_user(id) do
+    if id != nil do
+      Repo.get(User, id)
+    else
+      {:ok, Repo.get_by(User, name: "_")}
+    end
+  end
 
   def get_user_by_name(name) do
     Repo.get_by(User, name: name)

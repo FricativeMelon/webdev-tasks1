@@ -23,7 +23,7 @@ use Mix.Releases.Config,
 # and environment configuration is called a profile
 
 get_secret = fn name ->
-  base = Path.expand("~/.config/tasktracker")
+  base = Path.expand("~/.config/tasks2")
   File.mkdir_p!(base)
   path = Path.join(base, name)
   unless File.exists?(path) do

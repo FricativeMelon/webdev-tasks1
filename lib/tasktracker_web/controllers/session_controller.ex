@@ -3,7 +3,7 @@ defmodule TasktrackerWeb.SessionController do
 
   def create(conn, %{"name" => name}) do
     user = Tasktracker.Accounts.get_user_by_name(name)
-    if user && name != "_" do
+    if user do
       conn
       |> put_session(:user_id, user.id)
       |> put_flash(:info, "Welcome back #{user.name}")

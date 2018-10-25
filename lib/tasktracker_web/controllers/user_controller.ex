@@ -15,7 +15,14 @@ defmodule TasktrackerWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    case Accounts.create_user(user_params) do
+    map = case user_params
+               |> Map.fetch("manager_id") do
+            {:ok, _} ->
+              user_params
+            :error ->
+              Map.put(user_params, "manager_id", Tasktracker.Accounts.get_user_by_name("_").id)
+          end
+    case Accounts.create_user(map) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
@@ -37,17 +44,71 @@ defmodule TasktrackerWeb.UserController do
     render(conn, "edit.html", user: user, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "user" => user_params}) do
+  def update_from_delete(conn, %{"id" => id, "user" => user_params}) do
+    map =
+      case user_params
+           |> Map.fetch("manager_name") do
+        {:ok, ""} ->
+          user_params
+          |> Map.delete("manager_name")
+        {:ok, manager_name} ->
+          user = Tasktracker.Accounts.get_user_by_name(manager_name)
+          if user do
+            user_params
+            |> Map.delete("manager_name")
+            |> Map.put("manager_id", user.id)
+          else
+            :error
+          end
+        :error ->
+          :error
+      end
     user = Accounts.get_user!(id)
-
-    case Accounts.update_user(user, user_params) do
-      {:ok, user} ->
+    case map do
+      :error ->
         conn
-        |> put_flash(:info, "User updated successfully.")
-        |> redirect(to: Routes.user_path(conn, :show, user))
+        |> put_flash(:error, "Invalid username.")
+        |> redirect(to: Routes.user_path(conn, :edit, user))
+      _ ->
+        Accounts.update_user(user, map)
+    end
+  end
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", user: user, changeset: changeset)
+  def update(conn, %{"id" => id, "user" => user_params}) do
+    map =
+      case user_params
+           |> Map.fetch("manager_name") do
+        {:ok, ""} ->
+          user_params
+          |> Map.delete("manager_name")
+        {:ok, manager_name} ->
+          user = Tasktracker.Accounts.get_user_by_name(manager_name)
+          if user do
+            user_params
+            |> Map.delete("manager_name")
+            |> Map.put("manager_id", user.id)
+          else
+            :error
+          end
+        :error ->
+          :error
+      end
+    user = Accounts.get_user!(id)
+    case map do
+      :error ->
+        conn
+        |> put_flash(:error, "Invalid username.")
+        |> redirect(to: Routes.user_path(conn, :edit, user))
+      _ ->
+        case Accounts.update_user(user, map) do
+          {:ok, user} ->
+            conn
+            |> put_flash(:info, "User updated successfully.")
+            |> redirect(to: Routes.user_path(conn, :show, user))
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            render(conn, "edit.html", user: user, changeset: changeset)
+        end
     end
   end
 
@@ -58,6 +119,13 @@ defmodule TasktrackerWeb.UserController do
                            TasktrackerWeb.TaskController.update_from_delete(conn, %{"id" => t.id, "task" => %{"user_name" => "_"}})
                          else
                            t
+                         end)
+                end)
+    Tasktracker.Accounts.list_users()
+    |> Enum.map(fn u -> (if Integer.to_string(u.manager_id, 10) == id do
+                           TasktrackerWeb.UserController.update_from_delete(conn, %{"id" => u.id, "user" => %{"manager_name" => "_"}})
+                         else
+                           u
                          end)
                 end)
     {:ok, _user} = Accounts.delete_user(user)

@@ -4,7 +4,7 @@
   <thead>
     <tr>
       <th>Name</th>
-
+      <th>Manager</th>
       <th></th>
     </tr>
   </thead>
@@ -12,8 +12,10 @@
 <%= for user <- @users do %>
     <tr>
       <td><%= user.name %></td>
-
+      <td><%= Tasktracker.Accounts.get_user!(user.manager_id).name %>
       <td>
+        <%= if @current_user && (@current_user.name == user.name || @current_user.name == Tasktracker.Accounts.get_user!(user.manager_id).name) do link "Edit", to: Routes.user_path(@conn, :edit, user),
+            class: "btn btn-info" end%>
         <%= if @current_user && @current_user.name == user.name do link "Delete", to: Routes.user_path(@conn, :delete, user), method: :delete, data: [confirm: "Are you sure?"],
             class: "btn btn-danger" end%>
       </td>
