@@ -17,6 +17,12 @@
   <%= error_tag f, :manager_name %>
 </div>
 
+<div class="form_group">
+  <%= label f, :new_task %>
+  <%= text_input f, :task_name, class: "form-control" %>
+  <%= error_tag f, :task_name %>
+</div>
+
   <div>
     <%= submit "Submit", class: "btn btn-primary" %>
   </div>

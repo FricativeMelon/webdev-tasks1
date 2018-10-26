@@ -15,21 +15,28 @@ defmodule TasktrackerWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    map = case user_params
-               |> Map.fetch("manager_id") do
-            {:ok, _} ->
-              user_params
-            :error ->
-              Map.put(user_params, "manager_id", Tasktracker.Accounts.get_user_by_name("_").id)
-          end
-    case Accounts.create_user(map) do
-      {:ok, user} ->
-        conn
-        |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.user_path(conn, :show, user))
+    case Accounts.get_user_by_name(Map.fetch!(user_params, "name")) do
+      nil ->
+        map = case user_params
+                   |> Map.fetch("manager_id") do
+                {:ok, _} ->
+                  user_params
+                :error ->
+                  Map.put(user_params, "manager_id", Accounts.get_user_by_name("_").id)
+              end
+        case Accounts.create_user(map) do
+          {:ok, user} ->
+            conn
+            |> put_flash(:info, "User created successfully.")
+            |> redirect(to: Routes.user_path(conn, :show, user))
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
+          {:error, %Ecto.Changeset{} = changeset} ->
+            render(conn, "new.html", changeset: changeset)
+        end
+      _ ->      
+        conn
+        |> put_flash(:error, "A user with that name already exists")
+        |> redirect(to: Routes.user_path(conn, :new))
     end
   end
 
@@ -44,25 +51,28 @@ defmodule TasktrackerWeb.UserController do
     render(conn, "edit.html", user: user, changeset: changeset)
   end
 
-  def update_from_delete(conn, %{"id" => id, "user" => user_params}) do
-    map =
-      case user_params
-           |> Map.fetch("manager_name") do
-        {:ok, ""} ->
-          user_params
-          |> Map.delete("manager_name")
-        {:ok, manager_name} ->
-          user = Tasktracker.Accounts.get_user_by_name(manager_name)
-          if user do
-            user_params
-            |> Map.delete("manager_name")
-            |> Map.put("manager_id", user.id)
-          else
-            :error
-          end
-        :error ->
+  def convert_name_to_id(params, name, id, func) do
+    case params
+         |> Map.fetch(name) do
+      {:ok, ""} ->
+        params
+        |> Map.delete(name)
+      {:ok, got_name} ->
+        obj = func.(got_name)
+        if obj do
+          params
+          |> Map.delete(name)
+          |> Map.put(id, obj.id)
+        else
           :error
-      end
+        end
+      :error ->
+        :error
+    end
+  end
+
+  def update_from_delete(conn, %{"id" => id, "user" => user_params}) do
+    map = convert_name_to_id(user_params, "manager_name", "manager_id", &(Accounts.get_user_by_name(&1)))
     user = Accounts.get_user!(id)
     case map do
       :error ->
@@ -74,25 +84,8 @@ defmodule TasktrackerWeb.UserController do
     end
   end
 
-  def update(conn, %{"id" => id, "user" => user_params}) do
-    map =
-      case user_params
-           |> Map.fetch("manager_name") do
-        {:ok, ""} ->
-          user_params
-          |> Map.delete("manager_name")
-        {:ok, manager_name} ->
-          user = Tasktracker.Accounts.get_user_by_name(manager_name)
-          if user do
-            user_params
-            |> Map.delete("manager_name")
-            |> Map.put("manager_id", user.id)
-          else
-            :error
-          end
-        :error ->
-          :error
-      end
+  def update(conn, %{"id" => id, "user" => user_params}) do 
+    map = convert_name_to_id(user_params, "manager_name", "manager_id", &(Accounts.get_user_by_name(&1)))
     user = Accounts.get_user!(id)
     case map do
       :error ->

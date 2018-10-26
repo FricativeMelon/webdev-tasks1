@@ -4,8 +4,16 @@ defmodule TasktrackerWeb.TaskController do
   alias Tasktracker.Tasks
   alias Tasktracker.Tasks.Task
 
-  def index(conn, _params) do
-    tasks = Tasks.list_tasks()
+  def index(conn, params) do
+    tasks = case params do
+              %{"current_user" => current_user} ->
+                me = Tasktracker.Accounts.get_user!(String.to_integer(current_user))
+                users = Enum.filter(Tasktracker.Accounts.list_users(), fn u -> u.manager_id == me.id end)
+                Enum.filter(Tasks.list_tasks(), fn t -> Enum.any?(users,
+                                                     fn u -> u.id == t.user_id end) end)
+              _ ->
+                Tasks.list_tasks()
+            end
     render(conn, "index.html", tasks: tasks)
   end
 

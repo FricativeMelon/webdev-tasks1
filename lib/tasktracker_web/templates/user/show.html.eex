@@ -9,8 +9,25 @@
   <li>
     <strong>Manager:</strong>
     <%= Tasktracker.Accounts.get_user!(@user.manager_id).name %>
-  </li>
+  </li> 
 </ul>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Managed Users</th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for user <- Tasktracker.Accounts.list_users() do %>
+    <%= if user.manager_id == @user.id do %>
+    <tr>
+      <td><%= user.name %></td>
+    </tr>
+    <% end %>
+<% end %>
+  </tbody>
+</table>
 
 <span><%= link "Edit", to: Routes.user_path(@conn, :edit, @user) %></span>
 <span><%= link "Back", to: Routes.user_path(@conn, :index) %></span>
