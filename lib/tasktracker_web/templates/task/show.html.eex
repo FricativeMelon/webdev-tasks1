@@ -1,33 +1,38 @@
 <h1>Show Task</h1>
 
-<ul>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Start</th>
+      <th>End</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for time_block <- Enum.filter(@task.time_blocks,
+      fn b -> b.user_id == @current_user.id end) do %>
+    <tr>
+      <td><%= time_block.start %></td>
+      <td><%= time_block.end %></td>
 
-  <li>
-    <strong>Title:</strong>
-    <%= @task.title %>
-  </li>
+      <td>
+        <%= link "Delete", to: Routes.timeblock_path(@conn, :delete, time_block), method: :delete, data: [confirm: "Are you sure?"],
+            class: "btn btn-danger" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
 
-  <li>
-    <strong>Desc:</strong>
-    <%= @task.desc %>
-  </li>
+<div id="new-block-form">
+  Start time:<br>
+  <input type="time" id="new-block-start"><br>
+  End time:<br>
+  <input type="time" id="new-block-end"><br>
+  <button id="new-block-button"
+          data-user-id="<%= @current_user.id %>"
+          data-task-id="<%= @task.id %>"
+          class="btn btn-secondary">Submit Time Block</button>
+</div>
 
-  <li>
-    <strong>Completed:</strong>
-    <%= @task.completed %>
-  </li>
-
-  <li>
-    <strong>Time:</strong>
-    <%= @task.time %>
-  </li>
-
-  <li>
-    <strong>User:</strong>
-    <%= Tasktracker.Accounts.get_user(@task.user_id).name %>
-  </li>
-
-</ul>
-
-<span><%= link "Edit", to: Routes.task_path(@conn, :edit, @task) %></span>
 <span><%= link "Back", to: Routes.task_path(@conn, :index) %></span>

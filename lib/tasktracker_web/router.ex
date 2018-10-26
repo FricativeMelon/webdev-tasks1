@@ -5,7 +5,7 @@ defmodule TasktrackerWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    #plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug TasktrackerWeb.Plugs.FetchSession
   end
@@ -33,7 +33,7 @@ defmodule TasktrackerWeb.Router do
 
   scope "/ajax", TasktrackerWeb do
     pipe_through :ajax
-    resources "time_blocks", TimeblockController, except: [:new, :edit]
+    resources "/time_blocks", TimeblockController, except: [:new, :edit]
   end
 
   # Other scopes may use custom stacks.

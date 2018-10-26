@@ -9,6 +9,8 @@ defmodule Tasktracker.Tasks.Task do
     field :time, :integer, default: 0
     field :title, :string
     field :user_id, :id, default: nil
+    
+    has_many :time_blocks, Tasktracker.Timeblocks.Timeblock
 
     timestamps()
   end

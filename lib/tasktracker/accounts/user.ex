@@ -6,6 +6,7 @@ defmodule Tasktracker.Accounts.User do
   schema "users" do
     field :name, :string
     field :manager_id, :id, default: nil
+    has_many :time_blocks, Tasktracker.Timeblocks.Timeblock
 
     timestamps()
   end
